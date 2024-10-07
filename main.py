@@ -19,7 +19,6 @@ timer = pygame.time.Clock()
 player_scale = 12
 
 # level = 18 tiles wide and 9 tiles heigh
-
 level = [[0 for x in range(18)] for x in range(3)]
 
 #level design test
@@ -108,6 +107,8 @@ def show_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 menu_running = False
+                pygame.quit()
+                exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:  # start spel
                     menu_running = False
@@ -150,6 +151,11 @@ def draw_level(level):
             value = level[x][y]
             if 0 < value < 4:
                 screen.blit(tiles[value], (y * tile_size, x * tile_size))
+                # if value == 3: #visualize visual platform border
+                    # pygame.draw.circle(screen, (  255,   0, 0), (y * tile_size, x * tile_size), 5)
+                    # pygame.draw.circle(screen, (  255,   0, 0), (y * tile_size + 100, x * tile_size + 20), 5)
+                    # pygame.draw.circle(screen, (  255,   0, 0), (y * tile_size, x * tile_size + 20), 5)
+                    # pygame.draw.circle(screen, (  255,   0, 0), (y * tile_size + 100, x * tile_size), 5)
             elif 4 < value < 10:
                 if not inventory[value - 5]: # not in inventory so draw it
                     screen.blit(collectables[value - 5], (y * tile_size, x * tile_size))
@@ -170,15 +176,31 @@ def checkCollision(level):
     # hitbox of player
     right_coord = int((player_x + 60) // tile_size)
     left_coord = int(player_x // tile_size)
-    top_coord = int((player_y + 30) // tile_size)
+    top_coord = int((player_y + 10) // tile_size)
     bottom_coord = int((player_y + 140) // tile_size)
 
     top_right = level[top_coord][right_coord]
     bottom_right = level[bottom_coord][right_coord]
     top_left = level[top_coord][left_coord]
     bottom_left = level[bottom_coord][left_coord]
+    #visualize hitbox
+    # pygame.draw.circle(screen, (  0,   0, 255), (player_x + 60, player_y + 10), 5)
+    # pygame.draw.circle(screen, (  0,   0, 255), (player_x + 60, player_y + 140), 5)
+    # pygame.draw.circle(screen, (  0,   0, 255), (player_x, player_y + 10), 5)
+    # pygame.draw.circle(screen, (  0,   0, 255), (player_x, player_y + 140), 5)
 
-    # 0 is empty tile, 1 is underground, 2 is ground, 3 is platform, 4 is player
+    # hitbox of player with knowledge
+    right_coord_knowledge = int((player_x + 20) // tile_size)
+    left_coord_knowledge = int(player_x // tile_size)
+    top_coord_knowledge = int((player_y + 25) // tile_size)
+    bottom_coord_knowledge = int((player_y + 140) // tile_size)
+
+    top_right_knowledge = level[top_coord_knowledge][right_coord_knowledge]
+    bottom_right_knowledge = level[bottom_coord_knowledge][right_coord_knowledge]
+    top_left_knowledge = level[top_coord_knowledge][left_coord_knowledge]
+    bottom_left_knowledge = level[bottom_coord_knowledge][left_coord_knowledge]
+
+    # 0 is empty tile, 1 is underground, 2 is ground, 3 is platform, 4 is player, 5 is knowledge
 
     if top_coord >= 0: # check if player moves higher than screen and top coords collide
         # check if player collides with something on the right or left
@@ -198,42 +220,53 @@ def checkCollision(level):
     else:
         collide = 0
 
-    if 5 <= top_left <= 9: # when colliding with knowledge
-        if not inventory[top_left - 5]:
-            inventory[top_left - 5] = True
-    elif 5 <= top_right <= 9: 
-        if not inventory[top_right - 5]:
-            inventory[top_right - 5] = True
-    elif 5 <= bottom_left <= 9: 
-        if not inventory[top_right - 5]:
-            inventory[bottom_left - 5] = True
-    elif 5 <= bottom_right <= 9: 
-        if not inventory[top_right - 5]:
-            inventory[bottom_right - 5] = True
-
-
+    # Contact with knowledge
+    if 5 <= top_left_knowledge <= 9: # when colliding with knowledge, 
+        if not inventory[top_left_knowledge - 5]:
+            inventory[top_left_knowledge - 5] = True
+    elif 5 <= top_right_knowledge <= 9: 
+        if not inventory[top_right_knowledge - 5]:
+            inventory[top_right_knowledge - 5] = True
+    elif 5 <= bottom_left_knowledge <= 9: 
+        if not inventory[bottom_left_knowledge - 5]:
+            inventory[bottom_left_knowledge - 5] = True
+    elif 5 <= bottom_right_knowledge <= 9: 
+        if not inventory[bottom_right_knowledge - 5]:
+            inventory[bottom_right_knowledge - 5] = True
 
     return collide
 
 # check feet collision on landings
-def check_verticals(player_y):
+def check_verticals(y_pos):
     """
      Check if player should fall or stay on tile
      Not actual position but visual so it looks good while playing
-     :param player_y: player y position
+     :param y_pos: player y position
     """
-    center_coord = int((player_x + 25) // 100)
-    bottom_coord = int((player_y + 142) // 100)
-    if (player_y + 1420) > 0:
-        if 0 < level[bottom_coord][center_coord] < 4: # ground or underground or platform
+    center_coord = int((player_x + 25) // tile_size)
+    bottom_coord = int((player_y + 140) // tile_size)
+    # pygame.draw.circle(screen, (  0,   255, 0), (player_x + 25, player_y + 140), 5)
+    
+    top_coord_platform = int((player_y + 240) // tile_size)
+    # pygame.draw.circle(screen, (  255,   0, 0), (player_x + 25, player_y + 240), 5)
+
+    bottom_coord_platform = int((player_y + 40) // tile_size)
+    # pygame.draw.circle(screen, (  0,   0, 255), (player_x + 25, player_y + 40), 5)
+
+    # 0 is empty tile, 1 is underground, 2 is ground, 3 is platform, 4 is player, 5 is knowledge
+    if player_y + 110 > 0: # if full player is in level
+        if 0 < level[bottom_coord][center_coord] <  4: # ground or underground
             falling = False
+        # elif level[bottom_coord_platform][center_coord] == 3: # platform
+        #     falling = False
         else:
             falling = True
     else:
         falling = True
-    if not falling:
-        player_y = (bottom_coord - 5) * 100 - 20
-    return falling
+    if not falling: # compensate for falling trough a tile
+        y_pos = (bottom_coord - 1) * 100 - 41
+
+    return falling, y_pos
 
 """
 Game loop
@@ -267,7 +300,7 @@ while game_running:
     if in_air:
         y_change -= gravity
         player_y -= y_change
-    in_air = check_verticals(player_y)
+    in_air, player_y = check_verticals(player_y)
     if not in_air:
         y_change = 0
 
